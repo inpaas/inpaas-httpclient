@@ -20,7 +20,6 @@ import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContextBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.NoConnectionReuseStrategy;
 import org.apache.http.impl.client.HttpClients;
@@ -32,8 +31,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inpaas.http.model.HttpClientFuture;
 import com.inpaas.http.model.HttpClientInvocation;
 import com.inpaas.http.model.exception.HttpClientException;
+import com.inpaas.http.ssl.ExtendedSSLContextBuilder;
 import com.inpaas.http.ssl.SSLHostnameVerifier;
-import com.inpaas.http.ssl.SSLTrustStrategy;
 import com.migcomponents.migbase64.Base64;
 
 /**
@@ -61,8 +60,7 @@ public class HttpClient {
 			String protocol = ssl.containsKey("protocol") ? String.valueOf(ssl.get("protocol")) : "TLSv1";		
 			
 			
-			SSLContextBuilder ssb = new SSLContextBuilder()
-				.useProtocol(protocol);
+			ExtendedSSLContextBuilder ssb = new ExtendedSSLContextBuilder(protocol);
 	
 			if (ssl.containsKey("keystore")) {	
 				KeyStore ks = (KeyStore) ssl.get("keystore");
@@ -80,9 +78,9 @@ public class HttpClient {
 				logger.info("getSSLSocketFactory: useTrustStore({})", truststore);			
 			}		
 			
-	    	ssb.loadTrustMaterial(truststore, SSLTrustStrategy.getInstance());
+	    	ssb.loadTrustMaterial(truststore);
 	    	
-			return new SSLConnectionSocketFactory(ssb.build(), new String[] { protocol }, null, SSLHostnameVerifier.getInstance());
+	    	return new SSLConnectionSocketFactory(ssb.build(), new String[] { protocol }, null, SSLHostnameVerifier.getInstance());
 
 		} catch (NoSuchAlgorithmException e) {
 			throw HttpClientException.unwrap(e);

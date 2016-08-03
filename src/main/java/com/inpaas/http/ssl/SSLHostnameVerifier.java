@@ -1,10 +1,9 @@
 package com.inpaas.http.ssl;
 
-import javax.net.ssl.SSLException;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
 
-import org.apache.http.conn.ssl.AbstractVerifier;
-
-public class SSLHostnameVerifier extends AbstractVerifier {
+public class SSLHostnameVerifier implements HostnameVerifier {
 
 	private static SSLHostnameVerifier instance;
 	
@@ -14,14 +13,14 @@ public class SSLHostnameVerifier extends AbstractVerifier {
 		return instance;
 	}
 	
-	protected SSLHostnameVerifier() {
+	private SSLHostnameVerifier() {
 		// TODO Auto-generated constructor stub
 	}
 	
-	@Override
-	public void verify(String host, String[] cns, String[] subjectAlts) throws SSLException {
-		
 
+	@Override
+	public boolean verify(String hostname, SSLSession session) {
+		return true;
 	}
 
 }

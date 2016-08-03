@@ -2,11 +2,9 @@ package com.inpaas.http.soap;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;

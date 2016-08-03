@@ -3,7 +3,6 @@ package com.inpaas.http.model;
 import java.io.PrintStream;
 
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inpaas.http.model.exception.HttpRequestException;
 import com.inpaas.http.utils.JSON;
 

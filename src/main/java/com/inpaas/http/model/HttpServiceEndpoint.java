@@ -6,7 +6,6 @@ import java.util.function.Supplier;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.inpaas.http.HttpClient;
 import com.inpaas.http.HttpClientServiceFactory;
 
 @JsonInclude(Include.NON_NULL)

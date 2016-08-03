@@ -12,7 +12,6 @@ import com.inpaas.http.model.HttpClientInvocation;
 import com.inpaas.http.model.HttpService;
 import com.inpaas.http.model.HttpServiceDefinition;
 import com.inpaas.http.model.exception.HttpClientException;
-import com.inpaas.http.model.exception.HttpRequestException;
 
 public class WSDLLocatorImpl implements WSDLLocator {
 
