@@ -19,14 +19,10 @@ public class WSDLLocatorImpl implements WSDLLocator {
 
 	private final HttpService service;
 	
-	private final HttpClient httpClient;
-	
 	private String latestImportURI;
 	
 	public WSDLLocatorImpl(HttpService service) {
 		this.service = service;
-		
-		this.httpClient = new HttpClient();
 	}
 	
 	protected HttpServiceDefinition getWSDL(String wsdlUrl) {
@@ -57,7 +53,7 @@ public class WSDLLocatorImpl implements WSDLLocator {
 		hci.setUrl(wsdlUrl);
 		hci.getHeaders().put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
 
-		String defWsdl = httpClient.execute(hci).throwErrors().toString();
+		String defWsdl = hci.invoke().throwErrors().toString();
 		
 		HttpServiceDefinition serviceDef = new HttpServiceDefinition(wsdlPath, defWsdl);
 		service.addDefinition(serviceDef);
@@ -67,14 +63,14 @@ public class WSDLLocatorImpl implements WSDLLocator {
 	
 	@Override
 	public InputSource getBaseInputSource() {
-		logger.info("getBaseInputSource - {}", service.getBaseURL());
+		logger.info("getBaseInputSource: {}", service.getBaseURL());
 		
 		return getWSDL("?wsdl").getInputSource();
 	}
 
 	@Override
 	public InputSource getImportInputSource(String parentLocation, String importLocation) {
-		logger.info("WSDLService::getImportInputSource\n\t{}\n\t{}", parentLocation, importLocation);
+		logger.info("getImportInputSource: {}", importLocation);
 
 		return getWSDL(importLocation).getInputSource();
 	}

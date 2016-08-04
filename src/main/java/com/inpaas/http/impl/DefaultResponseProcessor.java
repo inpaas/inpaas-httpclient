@@ -1,4 +1,4 @@
-package com.inpaas.http;
+package com.inpaas.http.impl;
 
 import java.util.Map;
 
@@ -12,9 +12,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.inpaas.http.model.exception.HttpClientException;
 
-public class HttpClientResponseProcessor {
+public class DefaultResponseProcessor {
 
-	private static final Logger logger = LoggerFactory.getLogger(HttpClientResponseProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(DefaultResponseProcessor.class);
 	
 	public static Object proccessResponse(HttpResponse response) throws HttpClientException {
 		
@@ -23,7 +23,7 @@ public class HttpClientResponseProcessor {
 			String statusText = response.getStatusLine().getReasonPhrase();
 			Header contentType = response.getEntity().getContentType();
 			
-			logger.info("proccessResponse: {} {} '{}' with {} bytes", statusCode, statusText, contentType.getValue(), response.getEntity().getContentLength());
+			logger.debug("proccessResponse: {} {} '{}' with {} bytes", statusCode, statusText, contentType.getValue(), response.getEntity().getContentLength());
 			
 			String contentTypeText = contentType == null ? "application/json" : contentType.getValue();
 			Object data = null;

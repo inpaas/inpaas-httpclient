@@ -5,15 +5,20 @@ import java.io.PrintStream;
 import java.security.KeyStore;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.inpaas.http.HttpClient;
-import com.inpaas.http.HttpClientResponseProcessor;
+import com.inpaas.http.api.RequestBodyProcessor;
 import com.inpaas.http.api.ResponseProcessor;
+import com.inpaas.http.impl.DefaultRequestBodyProcessor;
+import com.inpaas.http.impl.DefaultResponseProcessor;
 import com.inpaas.http.model.exception.HttpClientException;
+import com.inpaas.http.thread.HttpClientInvoker;
 import com.inpaas.http.utils.JSON;
 
 public class HttpClientInvocation {
@@ -21,16 +26,24 @@ public class HttpClientInvocation {
 	private static final String DEFAULT_METHOD = "GET";
 	private static final String DEFAULT_CONTENT_TYPE = "application/json; charset=utf-8";
 
+	@JsonProperty(access = Access.READ_ONLY)
+	private UUID id;
+
+	@JsonInclude(Include.NON_NULL)
 	private String service;
 	
+	@JsonInclude(Include.NON_NULL)
 	private String endpoint;
 	
 	private String url;
 	
 	private String method;
 	
+	private int timeout;
+	
 	private String contentType;
 	
+	@JsonInclude(Include.NON_EMPTY)
 	private Map<String, Object> headers;
 	
 	private Object data;
@@ -38,24 +51,30 @@ public class HttpClientInvocation {
 	@JsonProperty(access = Access.WRITE_ONLY)
 	private Map<String, Object> ssl;
 	
-	private ResponseProcessor responseProcessor = HttpClientResponseProcessor::proccessResponse;
+	private RequestBodyProcessor requestBodyProcessor = DefaultRequestBodyProcessor::process;
+	
+	private ResponseProcessor responseProcessor = DefaultResponseProcessor::proccessResponse;
 	
 	@JsonProperty(access = Access.READ_ONLY)
+	@JsonInclude(Include.NON_DEFAULT)
 	private int statusCode;
 	
 	@JsonProperty(access = Access.READ_ONLY)
+	@JsonInclude(Include.NON_NULL)
 	private Object response;
 	
 	@JsonProperty(access = Access.READ_ONLY)
+	@JsonInclude(Include.NON_DEFAULT)
 	private boolean error;
 	
 	@JsonProperty(access = Access.READ_ONLY)
+	@JsonInclude(Include.NON_DEFAULT)
 	private long startedAt;
 	
 	@JsonProperty(access = Access.READ_ONLY)
+	@JsonInclude(Include.NON_DEFAULT)
 	private long endedAt;
 
-	
 	public void setResponseData(int statusCode, Object response, boolean error) {
 		this.statusCode = statusCode;
 		this.response = response;
@@ -64,9 +83,11 @@ public class HttpClientInvocation {
 	}
 	
 	public void setStarted() {
+		this.id = UUID.randomUUID();
 		this.startedAt = System.currentTimeMillis();
 	}
 
+	
 	public static HttpClientInvocation fromURL(String url) {
 		HttpClientInvocation i = new HttpClientInvocation();
 		i.setUrl(url);
@@ -87,7 +108,9 @@ public class HttpClientInvocation {
 		return new ObjectMapper().convertValue(opts, HttpClientInvocation.class);
 	}
 	
-	
+	public UUID getId() {
+		return id;
+	}
 
 	public final String getService() {
 		return service;
@@ -146,10 +169,21 @@ public class HttpClientInvocation {
 	public final long getEndedAt() {
 		return endedAt;
 	}
+	
+	public int getTimeout() {
+		if (timeout <= 0) timeout = 30;
+		
+		return timeout;
+	}
 
 	@JsonIgnore
 	public ResponseProcessor getResponseProcessor() {
 		return responseProcessor;
+	}
+	
+	@JsonIgnore
+	public RequestBodyProcessor getRequestBodyProcessor() {
+		return requestBodyProcessor;
 	}
 	
 	public final void setService(String service) {
@@ -208,6 +242,12 @@ public class HttpClientInvocation {
 		return this;
 	}
 	
+	public final HttpClientInvocation withRequestBodyProcessor(RequestBodyProcessor requestBodyProcessor) {
+		this.requestBodyProcessor = requestBodyProcessor;
+		
+		return this;
+	}
+	
 	public final HttpClientInvocation withSSLAuthentication(byte[] pfx, byte[] keystore, String secret) {
 		try {
 			
@@ -247,10 +287,15 @@ public class HttpClientInvocation {
 	}
 
 	public final HttpClientFuture invoke() {
-		return new HttpClient().execute(this);				
+		return HttpClientInvoker.invoke(this);
+	}
+
+	public HttpClientInvocation withTimeout(int seconds) {
+		this.timeout = seconds;
+		
+		return this;
 	}
 	
-
 	public HttpClientInvocation writeTo(PrintStream out) {
 		JSON.stringify(this, out);
 

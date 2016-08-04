@@ -1,5 +1,8 @@
 package com.inpaas.http;
 
+import java.io.File;
+import java.io.InputStream;
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
@@ -7,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
@@ -27,8 +31,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.inpaas.http.model.HttpClientFuture;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.inpaas.http.model.HttpClientInvocation;
 import com.inpaas.http.model.exception.HttpClientException;
 import com.inpaas.http.ssl.ExtendedSSLContextBuilder;
@@ -36,15 +39,22 @@ import com.inpaas.http.ssl.SSLHostnameVerifier;
 import com.migcomponents.migbase64.Base64;
 
 /**
- * HttpClient
+ * Main wrapper for ApacheHTTPClient
  * 
  * @author jpvarandas
  */
 public class HttpClient {
 
+	private static final String DEFAULT_ACCEPT = "application/json;q=0.9,text/javascript,text/xml,text/plain;q=0.8,*/*;q=0.1";
+	private static final String DEFAULT_USERAGENT = "inpaas-httpclient/1.0";	
+	private static final String DEFAULT_PROTOCOL = "TLSv1";
+	
 	protected static final Logger logger = LoggerFactory.getLogger(HttpClient.class);
 
-		
+	public HttpClient() {
+
+	}
+
 	protected SocketConfig getSocketConfig() {
 		return SocketConfig.custom()
 	        .setSoKeepAlive(false)
@@ -54,10 +64,10 @@ public class HttpClient {
 	        .setTcpNoDelay(true).build();
 	}
 	
-	protected SSLConnectionSocketFactory getSSLSocketFactory(HttpClientInvocation options) throws HttpClientException {
+	protected SSLConnectionSocketFactory getSSLSocketFactory(HttpClientInvocation hci) throws HttpClientException {
 		try {	
-			Map<String, Object> ssl = options.getSsl();
-			String protocol = ssl.containsKey("protocol") ? String.valueOf(ssl.get("protocol")) : "TLSv1";		
+			Map<String, Object> ssl = hci.getSsl();
+			String protocol = ssl.containsKey("protocol") ? String.valueOf(ssl.get("protocol")) : DEFAULT_PROTOCOL;		
 			
 			
 			ExtendedSSLContextBuilder ssb = new ExtendedSSLContextBuilder(protocol);
@@ -66,7 +76,7 @@ public class HttpClient {
 				KeyStore ks = (KeyStore) ssl.get("keystore");
 				String secret = (String) ssl.get("secret");
 				
-				logger.info("getSSLSocketFactory: loadKeyMaterial({})", ks);
+				logger.info("[{}] loadKeyMaterial({})", hci.getId(), ks);
 	
 				ssb.loadKeyMaterial(ks, secret.toCharArray());
 			}
@@ -75,7 +85,7 @@ public class HttpClient {
 			if (ssl.containsKey("truststore")) { 
 				truststore = (KeyStore) ssl.get("truststore");
 				
-				logger.info("getSSLSocketFactory: useTrustStore({})", truststore);			
+				logger.info("[{}] useTrustStore({})", hci.getId(), truststore);			
 			}		
 			
 	    	ssb.loadTrustMaterial(truststore);
@@ -94,7 +104,7 @@ public class HttpClient {
 		
 	}
 	
-	protected HttpClientConnectionManager getConnectionManager(HttpClientInvocation options, SSLConnectionSocketFactory sslsf) {
+	protected HttpClientConnectionManager getConnectionManager(SSLConnectionSocketFactory sslsf) {
 		RegistryBuilder<ConnectionSocketFactory> rb = RegistryBuilder.create();
 
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(rb
@@ -108,10 +118,10 @@ public class HttpClient {
         return cm;
 	}
 	
-	protected org.apache.http.client.HttpClient getHttpClient(HttpClientInvocation options) throws HttpClientException {
+	protected org.apache.http.client.HttpClient getHttpClient(HttpClientInvocation hci) throws HttpClientException {
 		
 		try {
-			SSLConnectionSocketFactory sslsf = getSSLSocketFactory(options);
+			SSLConnectionSocketFactory sslsf = getSSLSocketFactory(hci);
 			
 			return HttpClients.custom()
 					.disableAuthCaching()
@@ -121,7 +131,7 @@ public class HttpClient {
 					.setConnectionReuseStrategy(new NoConnectionReuseStrategy())
 					.setDefaultSocketConfig(getSocketConfig())
 					.setSSLSocketFactory(sslsf)
-					.setConnectionManager(getConnectionManager(options, sslsf))
+					.setConnectionManager(getConnectionManager(sslsf))
 					.build(); 
 
 		} catch(Exception e) {
@@ -139,10 +149,12 @@ public class HttpClient {
 		
 	}
 	
-	protected void proccessHeaders(HttpRequestBase xhr, Map<String, Object> headers) {
+	protected void proccessHeaders(HttpClientInvocation hci, HttpRequestBase xhr) {
+		Map<String, Object> headers = hci.getHeaders();
+		
 		// default headers
-		xhr.addHeader("Accept", nvl(headers, "Accept", "application/json;q=0.9,text/javascript,text/xml,text/plain;q=0.8,*/*;q=0.1"));
-		xhr.addHeader("User-Agent", nvl(headers, "User-Agent", "inPaaS/2.2"));		
+		xhr.addHeader("Accept", nvl(headers, "Accept", DEFAULT_ACCEPT));
+		xhr.addHeader("User-Agent", nvl(headers, "User-Agent", DEFAULT_USERAGENT));		
 
 		// handle host header
 		try {
@@ -154,7 +166,7 @@ public class HttpClient {
 		
 		// handle custom headers 
 		if (headers == null) return;
-		logger.info("proccessHeaders('{}')", headers);
+		logger.debug("[{}] proccessHeaders('{}')", hci.getId(), headers);
 		
 
 		for (String key: headers.keySet()) {
@@ -164,49 +176,53 @@ public class HttpClient {
 		}					
 	}
 
-	protected void proccessBody(HttpEntityEnclosingRequestBase xhr, HttpClientInvocation options) {
-		EntityBuilder eb = EntityBuilder.create();
-		
-		ContentType contentType = ContentType.parse(options.getContentType());
-		eb.setContentType(contentType);
-
-		// parse opt[data]
-		Object data = options.getData();
-		if (data != null) {		
-			logger.info("proccessBody({}, {})", contentType, data.getClass());
+	protected void proccessBody(HttpClientInvocation hci, HttpEntityEnclosingRequestBase xhr)  {
+		try {
+			EntityBuilder eb = EntityBuilder.create();
 			
-			if (data instanceof String) {
+			ContentType contentType = ContentType.parse(hci.getContentType());
+			eb.setContentType(contentType);
+	
+			Object data = hci.getRequestBodyProcessor().apply(hci);
+			
+			if (data == null) 
+				return;			
+			else if (data instanceof String) 
 				eb.setText((String) data);
-	
-			} else if (data instanceof byte[]) {
+			else if (data instanceof byte[]) 
 				eb.setBinary((byte[]) data);
-	
-			} else {
-				try {
-					eb.setText(new ObjectMapper().writeValueAsString(data));
-					
-				} catch (Throwable e) {
-					eb.setText(String.valueOf(data));
-					
-				}
-	
-			}
+			else if (data instanceof InputStream)
+				eb.setStream((InputStream) data);
+			else if (data instanceof File) 
+				eb.setFile((File) data);
+			else if (data instanceof NameValuePair[])
+				eb.setParameters((NameValuePair[]) data);
+			else if (data instanceof Serializable)
+				eb.setSerializable((Serializable) data);
+				
+			xhr.setEntity(eb.build());
+
+		} catch (JsonProcessingException e) {
+			throw new HttpClientException("error.httpclient.jsonwriter", e);
+			
+		} catch (Throwable e) {
+			throw new HttpClientException("error.httpclient.body", e);
+
 		}
-
-		xhr.setEntity(eb.build());
+		
 	}
 		
-	protected void proccessURI(HttpRequestBase xhr, String url) {
-		logger.info("processURI('{}')", url);
+	protected void proccessURI(HttpClientInvocation hci, HttpRequestBase xhr) {
+		logger.info("[{}] {} {}", hci.getId(), hci.getMethod(), hci.getUrl());
 		
-		xhr.setURI(java.net.URI.create(url));
+		xhr.setURI(java.net.URI.create(hci.getUrl()));
 	}
 
-	protected HttpRequestBase getRequest(HttpClientInvocation options) throws HttpClientException {
+	protected HttpRequestBase getRequest(HttpClientInvocation hci) throws HttpClientException {
 		
 		HttpRequestBase xhr;
 		
-		switch (options.getMethod()) {
+		switch (hci.getMethod()) {
 			case "DELETE":
 				xhr = new HttpDelete();
 	
@@ -217,13 +233,13 @@ public class HttpClient {
 				break;
 			case "POST":
 				HttpPost httpPost = new HttpPost();
-				proccessBody(httpPost, options);
+				proccessBody(hci, httpPost);
 	
 				xhr = httpPost;
 				break;
 			case "PUT":
 				HttpPut httpPut = new HttpPut();
-				proccessBody(httpPut, options);
+				proccessBody(hci, httpPut);
 	
 				xhr = httpPut;
 				break;
@@ -232,29 +248,39 @@ public class HttpClient {
 
 		}
 
-		logger.info("getRequest(): {}", xhr.getClass().getName());
+		logger.debug("getRequest(): {}", xhr.getClass().getName());
 		
 		return xhr;
 	}
-
-	public HttpClientFuture execute(HttpClientInvocation options) throws HttpClientException {
-		Objects.requireNonNull(options.getUrl(), "error.httpclient.emptyurl");
+	
+	public void execute(HttpClientInvocation hci) {
+		Objects.requireNonNull(hci.getUrl(), "error.httpclient.emptyurl");
 		
 		org.apache.http.client.HttpClient httpClient = null;
 		HttpResponse response = null;
 
 		try {
-			HttpRequestBase xhr = getRequest(options);
-			proccessURI(xhr, options.getUrl());
-			proccessHeaders(xhr, options.getHeaders());
-
-			httpClient = getHttpClient(options);
+			hci.setStarted();
+			logger.debug("[{}] started.", hci.getId());
 			
-			options.setStarted();
+			if (HttpClientServiceFactory.getHttpServiceProvider() != null) 
+				HttpClientServiceFactory.getHttpServiceProvider().createServiceInvocation(hci);
+
+			HttpRequestBase xhr = getRequest(hci);
+			proccessURI(hci, xhr);
+			proccessHeaders(hci, xhr);
+
+			httpClient = getHttpClient(hci);
+			
+			
 			response = httpClient.execute(xhr);
 
 			int statusCode = response.getStatusLine().getStatusCode();
-			options.setResponseData(statusCode, options.getResponseProcessor().apply(response), statusCode >= 300);
+			String statusText = response.getStatusLine().getReasonPhrase();
+			
+			logger.info("[{}] {} {}, {} bytes of '{}'.", hci.getId(), statusCode, statusText, response.getEntity().getContentLength(), response.getEntity().getContentType().getValue());
+
+			hci.setResponseData(statusCode, hci.getResponseProcessor().apply(response), statusCode >= 300);
 			
 		} catch (HttpClientException e) {
 			throw e;
@@ -263,30 +289,12 @@ public class HttpClient {
 			throw HttpClientException.unwrap(e);
 			// e.getCause().printStackTrace();
 		} finally {
+			if (HttpClientServiceFactory.getHttpServiceProvider() != null) 
+				HttpClientServiceFactory.getHttpServiceProvider().updateServiceInvocation(hci);
+
+			logger.info("[{}] {} ms elapsed.", hci.getId(), hci.getEndedAt() - hci.getStartedAt());
 			
 		}
-		
-		return new HttpClientFuture(options);
-	}
-	
-	public static HttpClientFuture execute(Map<String, Object> opts) throws HttpClientException {
-		return new HttpClient().execute(HttpClientInvocation.fromMap(opts));		
-	}
-	
-	public static HttpClientFuture get(String url) throws HttpClientException {
-		return new HttpClient().execute(HttpClientInvocation.fromURL(url));		
-	}
-	
-	public static HttpClientFuture post(String url, Map<String, Object> data) throws HttpClientException {
-		return new HttpClient().execute(HttpClientInvocation.fromOptions("POST", url, data));				
-	}
-	
-	public static HttpClientFuture put(String url, Map<String, Object> data) throws HttpClientException {
-		return new HttpClient().execute(HttpClientInvocation.fromOptions("PUT", url, data));
-	}
-
-	public static HttpClientFuture delete(String url) throws HttpClientException {
-		return new HttpClient().execute(HttpClientInvocation.fromOptions("DELETE", url, null));
 	}
 	
 	

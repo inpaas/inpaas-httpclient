@@ -62,7 +62,7 @@ public class WSDLImportService {
 		Definition doc = parseWSDL(def);
 
 		String tns = doc.getTargetNamespace();
-		logger.info("reading services/operations ...");		
+		logger.debug("reading services/operations ...");		
 		
 		@SuppressWarnings("unchecked")
 		Set<QName> keys = doc.getServices().keySet();		
@@ -70,7 +70,7 @@ public class WSDLImportService {
 		for(QName skey: keys) {
 			
 			String serviceName = skey.getLocalPart();		 
-			logger.info("Service: {}", serviceName);		
+			logger.debug("Service: {}", serviceName);		
 			
 			Service service = doc.getService(skey);
 

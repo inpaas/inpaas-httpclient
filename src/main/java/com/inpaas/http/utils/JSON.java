@@ -11,7 +11,7 @@ public class JSON {
 
 	private static ObjectWriter writer;
 	
-	public static final ObjectWriter getWriter() {
+	private static final ObjectWriter getWriter() {
 		if (writer == null) writer = new ObjectMapper().writerWithDefaultPrettyPrinter();
 		return writer;
 	}

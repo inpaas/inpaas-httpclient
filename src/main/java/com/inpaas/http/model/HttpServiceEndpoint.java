@@ -13,20 +13,29 @@ public class HttpServiceEndpoint {
 
 	private final HttpService service;
 	
-	private Integer id;
-	
+	private Integer id;	
 	
 	private String name;
 	private EndpointType type;
 	
+	@JsonInclude(Include.NON_NULL)
 	private String schema;
+	
+	@JsonInclude(Include.NON_NULL)
 	private String host;
+	
+	@JsonInclude(Include.NON_NULL)
 	private String path;
 	
 	private String method;
 
+	@JsonInclude(Include.NON_NULL)
 	private String portType;	
+	
+	@JsonInclude(Include.NON_NULL)
 	private String bindingName;
+
+	@JsonInclude(Include.NON_NULL)
 	private String inputName; 	
 	
 	private boolean rest;
@@ -37,6 +46,11 @@ public class HttpServiceEndpoint {
 
 	public final Integer getId() {
 		return id;
+	}
+	
+	@JsonIgnore
+	public HttpService getService() {
+		return service;
 	}
 
 	public final String getName() {

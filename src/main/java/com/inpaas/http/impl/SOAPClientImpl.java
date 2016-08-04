@@ -1,4 +1,4 @@
-package com.inpaas.http;
+package com.inpaas.http.impl;
 
 import java.util.Map;
 

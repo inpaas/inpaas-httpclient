@@ -1,15 +1,9 @@
 package com.inpaas.http.soap;
 
-import java.util.Map;
-
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.inpaas.http.model.exception.HttpClientException;
 import com.inpaas.http.utils.XML;
 

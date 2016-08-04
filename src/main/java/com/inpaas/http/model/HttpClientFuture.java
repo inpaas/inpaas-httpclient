@@ -1,62 +1,100 @@
 package com.inpaas.http.model;
 
 import java.io.PrintStream;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.inpaas.http.model.exception.HttpRequestException;
 import com.inpaas.http.utils.JSON;
 
 public class HttpClientFuture {
 
-	private final HttpClientInvocation request;
-
-	public HttpClientFuture(HttpClientInvocation request) {
-		this.request = request;
-	}
-
-	public HttpClientInvocation getRequest() {
-		return request;
+	private final int timeout;
+	
+	@JsonIgnore
+	private final CompletableFuture<HttpClientInvocation> future;
+	
+	public HttpClientFuture(HttpClientInvocation request, CompletableFuture<HttpClientInvocation> future, int timeout) {
+		this.future = future;
+		
+		this.timeout = timeout;
 	}
 
 	public HttpClientFuture success(HttpClientCallback callback) {
-		if (!getRequest().isError()) callback.accept(request);
+		future.thenAccept(hci -> {
+			if (!hci.isError()) callback.accept(hci.getResponse(), hci);
+		});
 		
 		return this;
 	}
 
 	public HttpClientFuture error(HttpClientCallback callback) {
-		if (getRequest().isError()) callback.accept(request);
+		future.thenAccept(hci -> {
+			if (hci.isError()) callback.accept(hci.getResponse(), hci);
+		});
 
 		return this;	
 	}
 	
 	public HttpClientFuture complete(HttpClientCallback callback) {
-		callback.accept(request);
+		future.thenAccept(hci -> {
+			callback.accept(hci.getResponse(), hci);
+		});
 		
 		return this;
 	}
 	
 	public HttpClientFuture throwErrors() {
-		if (getRequest().isError()) throw new HttpRequestException();
+		future.thenAccept(hci -> {
+			if (hci.isError()) throw new HttpRequestException();			
+		});
 		
 		return this;
 	} 
 	
+	protected HttpClientInvocation completed() {
+		try {
+			return future.get(timeout, TimeUnit.SECONDS);
+			
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+			
+		}		
+	}
+	
 	@JsonValue
-	public Object getResponse() {
-		return getRequest().getResponse();		
+	public Object response() {
+		try {
+			return completed().getResponse();
+			
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+			
+		}
 	}
 	
 	public HttpClientFuture writeTo(PrintStream out) {
-		JSON.stringify(getResponse(), out);
-
+		future.thenAccept(o -> JSON.stringify(o, out));
+		
 		return this;
 	}
-
+	
+	public HttpClientFuture andThen(Consumer<HttpClientInvocation> fn) {
+		future.thenAccept(fn);
+		
+		return this;
+	}
 	
 	@Override
 	public String toString() {
-		return String.valueOf(getResponse());
+		return String.valueOf(completed());
+	}
+	
+	public String stringify() {
+		return JSON.stringify(completed());
 	}
 	
 	@FunctionalInterface
@@ -64,9 +102,6 @@ public class HttpClientFuture {
 		
 		void accept(Object data, HttpClientInvocation invocation) ;
 		
-		default void accept(HttpClientInvocation invocation) {
-			accept(invocation.getResponse(), invocation);
-		}	
 	}
 
 }

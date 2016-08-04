@@ -1,7 +1,6 @@
 package com.inpaas.http.utils;
 
 import java.io.InputStream;
-import java.util.Map;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
