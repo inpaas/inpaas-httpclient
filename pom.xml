@@ -3,8 +3,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.inpaas</groupId>
-	<artifactId>inpaas-http</artifactId>
-	<version>0.1</version>
+	<artifactId>inpaas-httpclient</artifactId>
+	<version>1.0</version>
 
 	<name>HTTP Client</name>
 	<description>HTTP Client for REST and SOAP Services</description>
@@ -17,7 +17,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<slf4j.version>1.7.21</slf4j.version>
-		<aws-lambda.version>1.1.0</aws-lambda.version>
+		<jackson.version>2.7.6</jackson.version>
 	</properties>
 
 	<licenses>
@@ -57,19 +57,19 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
-			<version>2.7.0</version>
+			<version>${jackson.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.7.0</version>
+			<version>${jackson.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-xml</artifactId>
-			<version>2.7.0</version>
+			<version>${jackson.version}</version>
 		</dependency>
 
 		<dependency>

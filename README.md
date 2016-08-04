@@ -15,7 +15,7 @@ Functionality of this package is contained in Java package `com.inpaas.http`, an
 <properties>
   ...
   <!-- Use the latest version whenever possible. -->
-  <inpaas.osl.version>0.1</inpaas.osl.version>
+  <inpaas.osl.version>1.0</inpaas.osl.version>
   ...
 </properties>
 
