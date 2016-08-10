@@ -3,6 +3,7 @@ package com.inpaas.http.model;
 import java.io.PrintStream;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -23,7 +24,7 @@ public class HttpClientFuture {
 		this.timeout = timeout;
 	}
 
-	public HttpClientFuture success(HttpClientCallback callback) {
+	public HttpClientFuture success(BiConsumer<Object, HttpClientInvocation> callback) {
 		future.thenAccept(hci -> {
 			if (!hci.isError()) callback.accept(hci.getResponse(), hci);
 		});
@@ -31,7 +32,7 @@ public class HttpClientFuture {
 		return this;
 	}
 
-	public HttpClientFuture error(HttpClientCallback callback) {
+	public HttpClientFuture error(BiConsumer<Object, HttpClientInvocation> callback) {
 		future.thenAccept(hci -> {
 			if (hci.isError()) callback.accept(hci.getResponse(), hci);
 		});
@@ -39,7 +40,7 @@ public class HttpClientFuture {
 		return this;	
 	}
 	
-	public HttpClientFuture complete(HttpClientCallback callback) {
+	public HttpClientFuture complete(BiConsumer<Object, HttpClientInvocation> callback) {
 		future.thenAccept(hci -> {
 			callback.accept(hci.getResponse(), hci);
 		});
@@ -47,15 +48,13 @@ public class HttpClientFuture {
 		return this;
 	}
 	
-	public HttpClientFuture throwErrors() {
-		future.thenAccept(hci -> {
-			if (hci.isError()) throw new HttpRequestException();			
-		});
+	public HttpClientFuture throwErrors() throws HttpRequestException {
+		if (completed().isError()) throw new HttpRequestException();			
 		
 		return this;
 	} 
 	
-	protected HttpClientInvocation completed() {
+	public HttpClientInvocation completed() {
 		try {
 			return future.get(timeout, TimeUnit.SECONDS);
 			
@@ -97,11 +96,5 @@ public class HttpClientFuture {
 		return JSON.stringify(completed());
 	}
 	
-	@FunctionalInterface
-	public static interface HttpClientCallback {
-		
-		void accept(Object data, HttpClientInvocation invocation) ;
-		
-	}
 
 }
