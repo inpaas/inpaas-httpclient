@@ -262,6 +262,7 @@ public class HttpClient {
 		try {
 			hci.setStarted();
 			logger.debug("[{}] started.", hci.getId());
+			if (hci.getLogging() != null) hci.getLogging().accept(hci);
 			
 			if (HttpClientServiceFactory.getHttpServiceProvider() != null) 
 				HttpClientServiceFactory.getHttpServiceProvider().createServiceInvocation(hci);
@@ -279,7 +280,6 @@ public class HttpClient {
 			String statusText = response.getStatusLine().getReasonPhrase();
 			
 			logger.info("[{}] {} {}, {} bytes of '{}'.", hci.getId(), statusCode, statusText, response.getEntity().getContentLength(), response.getEntity().getContentType().getValue());
-
 			hci.setResponseData(statusCode, hci.getResponseProcessor().apply(response), statusCode >= 300);
 			
 		} catch (HttpClientException e) {
@@ -295,6 +295,7 @@ public class HttpClient {
 				HttpClientServiceFactory.getHttpServiceProvider().updateServiceInvocation(hci);
 
 			logger.info("[{}] {} ms elapsed.", hci.getId(), hci.getEndedAt() - hci.getStartedAt());
+			if (hci.getLogging() != null) hci.getLogging().accept(hci);
 			
 		}
 	}

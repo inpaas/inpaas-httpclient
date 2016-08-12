@@ -34,15 +34,6 @@ public class HttpService {
 	
 	private Map<String, HttpServiceEndpoint> endpoints;
 	
-	@JsonIgnore
-	private Long keyStoreFileId;
-
-	@JsonIgnore
-	private byte[] keyStoreFileData;
-	
-	@JsonIgnore
-	private String keyStorePassword;
-
 	public final Integer getId() {
 		return id;
 	}
@@ -96,18 +87,6 @@ public class HttpService {
 		return wsaAddressing;
 	}
 
-	public final Long getKeyStoreFileId() {
-		return keyStoreFileId;
-	}
-
-	public final byte[] getKeyStoreFileData() {
-		return keyStoreFileData;
-	}
-
-	public final String getKeyStorePassword() {
-		return keyStorePassword;
-	}
-
 	public final void setId(Integer id) {
 		this.id = id;
 	}
@@ -146,18 +125,6 @@ public class HttpService {
 
 	public final void setWsaAddressing(boolean wsaAddressing) {
 		this.wsaAddressing = wsaAddressing;
-	}
-
-	public final void setKeyStoreFileId(Long keyStoreFileId) {
-		this.keyStoreFileId = keyStoreFileId;
-	}
-
-	public final void setKeyStoreFileData(byte[] keyStoreFileData) {
-		this.keyStoreFileData = keyStoreFileData;
-	}
-
-	public final void setKeyStorePassword(String keyStorePassword) {
-		this.keyStorePassword = keyStorePassword;
 	}
 	
 	public final void setType(ServiceType type) {

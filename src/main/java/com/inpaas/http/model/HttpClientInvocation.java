@@ -6,6 +6,7 @@ import java.security.KeyStore;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -50,6 +51,8 @@ public class HttpClientInvocation {
 	
 	@JsonProperty(access = Access.WRITE_ONLY)
 	private Map<String, Object> ssl;
+	
+	private Consumer<HttpClientInvocation> logging;
 	
 	private RequestBodyProcessor requestBodyProcessor = DefaultRequestBodyProcessor::process;
 	
@@ -186,6 +189,11 @@ public class HttpClientInvocation {
 		return requestBodyProcessor;
 	}
 	
+	@JsonIgnore
+	public Consumer<HttpClientInvocation> getLogging() {
+		return logging;
+	}
+	
 	public final void setService(String service) {
 		this.service = service;
 	}
@@ -292,6 +300,12 @@ public class HttpClientInvocation {
 
 	public HttpClientInvocation withTimeout(int seconds) {
 		this.timeout = seconds;
+		
+		return this;
+	}
+	
+	public HttpClientInvocation withLogging(Consumer<HttpClientInvocation> logging) {
+		this.logging = logging;
 		
 		return this;
 	}
