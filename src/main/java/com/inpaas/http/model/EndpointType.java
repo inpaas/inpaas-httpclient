@@ -1,5 +1,6 @@
 package com.inpaas.http.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum EndpointType {
@@ -19,6 +20,16 @@ public enum EndpointType {
 	public ServiceType getServiceType() {
 		return serviceType;
 	}
+	
+	@JsonCreator
+	public EndpointType parse(String value) {
+		for(EndpointType type: values()) {
+			if (type.name().toLowerCase().equals(value)) return type;
+		}
+		
+		return null;
+	}
+	
 	
 	@JsonValue
 	@Override

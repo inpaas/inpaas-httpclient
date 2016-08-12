@@ -11,7 +11,7 @@ import com.inpaas.http.HttpClientServiceFactory;
 @JsonInclude(Include.NON_NULL)
 public class HttpServiceEndpoint {
 
-	private final HttpService service;
+	private HttpService service;
 	
 	private Integer id;	
 	
@@ -40,6 +40,10 @@ public class HttpServiceEndpoint {
 	
 	private boolean rest;
 	
+	public HttpServiceEndpoint() {
+		this.service = null;
+	}
+	
 	public HttpServiceEndpoint(HttpService service) {
 		this.service = service;
 	}
@@ -52,7 +56,11 @@ public class HttpServiceEndpoint {
 	public HttpService getService() {
 		return service;
 	}
-
+	
+	public void setService(HttpService service) {
+		this.service = service;
+	}
+	
 	public final String getName() {
 		return name;
 	}

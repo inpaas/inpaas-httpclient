@@ -28,6 +28,7 @@ public class WSDLClientInvocationBuilder {
 	
 	public HttpClientInvocation buildRequest(HttpService service, String operationName, Map<String, Object> data) {
 		HttpServiceEndpoint endpoint = service.getEndpoints().get(operationName);
+		endpoint.setService(service);
 		
 		String url = service.getBaseURL();
 		if (endpoint.getPath() != null) url = endpoint.getEndpointURL();

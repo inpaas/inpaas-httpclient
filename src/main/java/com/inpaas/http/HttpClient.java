@@ -283,9 +283,11 @@ public class HttpClient {
 			hci.setResponseData(statusCode, hci.getResponseProcessor().apply(response), statusCode >= 300);
 			
 		} catch (HttpClientException e) {
+			logger.error("[{}] error: {}", hci.getId(), e.getMessage(), e);
 			throw e;
 
 		} catch (Throwable e) {
+			logger.error("[{}] error: {}", hci.getId(), e.getMessage(), e);
 			throw HttpClientException.unwrap(e);
 			// e.getCause().printStackTrace();
 		} finally {

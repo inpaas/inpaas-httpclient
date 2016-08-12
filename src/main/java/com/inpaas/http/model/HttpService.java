@@ -87,6 +87,7 @@ public class HttpService {
 		return scannedAt;
 	}
 	
+	@JsonIgnore
 	public final String getBaseURL() {
 		return schema + "://" + host + path;
 	}
@@ -173,6 +174,7 @@ public class HttpService {
 		return definitions;
 	}
 	
+	@JsonIgnore
 	public final HttpServiceDefinition getBaseDefinition() {
 		return getDefinitions().get("?wsdl");
 	}

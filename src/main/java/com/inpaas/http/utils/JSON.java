@@ -1,9 +1,12 @@
 package com.inpaas.http.utils;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
@@ -32,5 +35,9 @@ public class JSON {
 	
 	public static final void stringify(Object data, PrintStream out) {
 		out.println(JSON.stringify(data));
+	}
+	
+	public static final <I> I parse(String json, Class<I> clazz) throws IOException {
+		return new ObjectMapper().readValue(json, clazz);		
 	}
 }
