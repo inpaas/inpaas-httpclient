@@ -76,7 +76,7 @@ public class HttpClient {
 				KeyStore ks = (KeyStore) ssl.get("keystore");
 				String secret = (String) ssl.get("secret");
 				
-				logger.info("[{}] loadKeyMaterial({})", hci.getId(), ks);
+				logger.debug("[{}] loadKeyMaterial({})", hci.getId(), ks);
 	
 				ssb.loadKeyMaterial(ks, secret.toCharArray());
 			}
@@ -85,7 +85,7 @@ public class HttpClient {
 			if (ssl.containsKey("truststore")) { 
 				truststore = (KeyStore) ssl.get("truststore");
 				
-				logger.info("[{}] useTrustStore({})", hci.getId(), truststore);			
+				logger.debug("[{}] useTrustStore({})", hci.getId(), truststore);			
 			}		
 			
 	    	ssb.loadTrustMaterial(truststore);
@@ -213,7 +213,7 @@ public class HttpClient {
 	}
 		
 	protected void proccessURI(HttpClientInvocation hci, HttpRequestBase xhr) {
-		logger.info("[{}] {} {}", hci.getId(), hci.getMethod(), hci.getUrl());
+		logger.debug("[{}] {} {}", hci.getId(), hci.getMethod(), hci.getUrl());
 		
 		xhr.setURI(java.net.URI.create(hci.getUrl()));
 	}
