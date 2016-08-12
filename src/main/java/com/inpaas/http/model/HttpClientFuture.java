@@ -89,11 +89,11 @@ public class HttpClientFuture {
 	
 	@Override
 	public String toString() {
-		return String.valueOf(completed());
+		return String.valueOf(response());
 	}
 	
 	public String stringify() {
-		return JSON.stringify(completed());
+		return JSON.stringify(response());
 	}
 	
 

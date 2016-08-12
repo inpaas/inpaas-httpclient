@@ -1,5 +1,7 @@
 package com.inpaas.http.thread;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -53,11 +55,25 @@ public class HttpClientInvoker {
 	
 	public static HttpClientFuture invoke(HttpClientInvocation hci) {
 		return new HttpClientFuture(hci, CompletableFuture.supplyAsync(() -> {
-			new HttpClient().execute(hci);
+			try {
+				new HttpClient().execute(hci);
+			} catch(Exception e) {
+				hci.setResponseData(500, unwrap(e), true);
+			}
 			
 			return hci;
 		}, getExecutor()), hci.getTimeout());
 		
+	}
+	
+	private static Map<String, Object> unwrap(Throwable e) {
+		Map<String, Object> err = new LinkedHashMap<>();
+		err.put("message", e.getMessage());
+		err.put("type", e.getClass().getName());
+		
+		if (e.getCause() != null) err.put("cause", unwrap(e.getCause()));
+		
+		return err;
 	}
 	
 	

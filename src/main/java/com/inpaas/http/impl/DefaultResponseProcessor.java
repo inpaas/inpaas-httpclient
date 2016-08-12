@@ -1,5 +1,6 @@
 package com.inpaas.http.impl;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
@@ -28,7 +29,14 @@ public class DefaultResponseProcessor {
 			String contentTypeText = contentType == null ? "application/json" : contentType.getValue();
 			Object data = null;
 			if (contentTypeText.indexOf("json") > -1 || contentTypeText.indexOf("javascript") > -1) {
-				data = new ObjectMapper().readValue(response.getEntity().getContent(), Map.class);
+				String jsondata = IOUtils.toString(response.getEntity().getContent());
+				
+				if (jsondata.startsWith("["))
+					data = new ObjectMapper().readValue(jsondata, List.class);
+				else if (jsondata.startsWith("{"))
+					data = new ObjectMapper().readValue(jsondata, Map.class);
+				else
+					data = new ObjectMapper().readValue(jsondata, Object.class);
 	
 			} else if (contentTypeText.indexOf("text/xml") == 0) {
 				data = new XmlMapper().readValue(response.getEntity().getContent(), Map.class);
