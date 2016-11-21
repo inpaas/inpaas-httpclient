@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
@@ -15,6 +16,7 @@ import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -51,6 +53,14 @@ public class HttpClient {
 	
 	protected static final Logger logger = LoggerFactory.getLogger(HttpClient.class);
 
+	protected static String localAddrs = null;
+	
+	protected synchronized String getLocalAddress() throws UnknownHostException {
+		if (localAddrs == null) localAddrs = Base64.encodeToString(InetAddress.getLocalHost().getAddress(), false); 
+		
+		return localAddrs;
+	}
+	
 	public HttpClient() {
 
 	}
@@ -149,6 +159,8 @@ public class HttpClient {
 		
 	}
 	
+	
+	
 	protected void proccessHeaders(HttpClientInvocation hci, HttpRequestBase xhr) {
 		Map<String, Object> headers = hci.getHeaders();
 		
@@ -158,7 +170,7 @@ public class HttpClient {
 
 		// handle host header
 		try {
-			xhr.addHeader("X-Agent-Host", Base64.encodeToString(InetAddress.getLocalHost().getAddress(), false));
+			xhr.addHeader("X-Agent-Host", getLocalAddress());
 			
 		} catch (Exception e) {
 
@@ -242,6 +254,12 @@ public class HttpClient {
 				proccessBody(hci, httpPut);
 	
 				xhr = httpPut;
+				break;
+			case "PATCH":
+				HttpPatch httpPatch = new HttpPatch();
+				proccessBody(hci, httpPatch);
+	
+				xhr = httpPatch;
 				break;
 			default:
 				throw new HttpClientException("error.httpclient.unsupportedmethod", null);
