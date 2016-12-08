@@ -38,6 +38,9 @@ public class HttpServiceEndpoint {
 	@JsonInclude(Include.NON_NULL)
 	private String inputName; 	
 	
+	@JsonInclude(Include.NON_NULL)
+	private String inputHeaderName;
+	
 	private boolean rest;
 	
 	public HttpServiceEndpoint() {
@@ -80,6 +83,10 @@ public class HttpServiceEndpoint {
 	public final String getInputName() {
 		return inputName;
 	}
+	
+	public final String getInputHeaderName() {
+		return inputHeaderName;
+	}
 
 	public final String getSchema() {
 		return schema;
@@ -120,6 +127,10 @@ public class HttpServiceEndpoint {
 	
 	public final void setInputName(String inputName) {
 		this.inputName = inputName;
+	}
+	
+	public final void setInputHeaderName(String inputHeaderName) {
+		this.inputHeaderName = inputHeaderName;
 	}
 
 	public final void setSchema(String schema) {

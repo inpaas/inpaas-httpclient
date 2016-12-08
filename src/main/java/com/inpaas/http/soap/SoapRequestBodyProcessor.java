@@ -70,12 +70,25 @@ public class SoapRequestBodyProcessor implements RequestBodyProcessor {
 		else
 			dataMap = new ObjectMapper().convertValue(dataObject, Map.class);
 		
-		Map<String, String> xpathParams = buildParams(endpoint.getInputName(), dataMap, new LinkedHashMap<>());
+		Map<String, String> xpathParams = new LinkedHashMap<>();
+		
+		if (dataMap.containsKey("body")) {
+			buildParams(endpoint.getInputName(), (Map<String, ?>) dataMap.get("body"), xpathParams);
+
+			if (dataMap.containsKey("header") && endpoint.getInputHeaderName() != null) {
+				buildParams(endpoint.getInputHeaderName(), (Map<String, ?>) dataMap.get("header"), xpathParams);
+			}
+			
+		} else {
+			buildParams(endpoint.getInputName(), dataMap, xpathParams);
+		}
+		
+		
 		StringWriter sw = new StringWriter();
 		xpathParams.entrySet().forEach(param -> sw.write("\n\t" + param.getKey() + ": " + param.getValue()));		
 		logger.debug("buildParams: {}", sw);
-		creator.setFormParams(xpathParams);
 		
+		creator.setFormParams(xpathParams);
 		creator.createRequest(endpoint.getPortType(), endpoint.getName(), endpoint.getBindingName());
 
 		String xml = soapBody.toString();

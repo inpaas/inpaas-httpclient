@@ -1,5 +1,6 @@
 package com.inpaas.http.soap;
 
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import javax.xml.namespace.QName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ibm.wsdl.extensions.soap.SOAPHeaderImpl;
 import com.inpaas.http.model.EndpointType;
 import com.inpaas.http.model.HttpService;
 import com.inpaas.http.model.HttpServiceEndpoint;
@@ -83,7 +85,7 @@ public class WSDLImportService {
 				List<BindingOperation> ops = port.getBinding().getBindingOperations();
 				
 				for(BindingOperation op: ops) {
-					def.addEndpoint(readOperation(def, service, port, op));
+					def.addEndpoint(readOperation(def, doc, service, port, op));
 				}
 				
 			}
@@ -100,7 +102,7 @@ public class WSDLImportService {
 		return reader.readWSDL(new WSDLLocatorImpl(service));
 	}
 	
-	protected HttpServiceEndpoint readOperation(HttpService def, Service service, Port port, BindingOperation op) {
+	protected HttpServiceEndpoint readOperation(HttpService def, Definition doc, Service service, Port port, BindingOperation op) {
 		HttpServiceEndpoint endpoint = new HttpServiceEndpoint(def);
 		endpoint.setName(op.getName());
 		endpoint.setBindingName(port.getBinding().getQName().getLocalPart());
@@ -134,6 +136,19 @@ public class WSDLImportService {
 		}
 		
 		Part input = (Part) op.getOperation().getInput().getMessage().getOrderedParts(null).get(0);
+		
+		@SuppressWarnings("unchecked")
+		Iterator<Object> it = op.getBindingInput().getExtensibilityElements().iterator();
+		while(it.hasNext()) {
+			Object el = it.next(); 
+			
+			if (el instanceof SOAPHeaderImpl) {
+				Part header = (Part) doc.getMessage(((SOAPHeaderImpl) el).getMessage()).getOrderedParts(null).get(0);
+				endpoint.setInputHeaderName(header.getElementName().getLocalPart());
+				
+			}
+		}
+		
 		endpoint.setInputName(input.getElementName().getLocalPart());
 		
 		return endpoint;
