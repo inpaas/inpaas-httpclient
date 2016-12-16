@@ -4,7 +4,7 @@
 
 	<groupId>com.inpaas</groupId>
 	<artifactId>inpaas-httpclient</artifactId>
-	<version>0.4.9</version>
+	<version>0.4.10</version>
 
 	<name>HTTP Client</name>
 	<description>HTTP Client for REST and SOAP Services</description>
@@ -141,7 +141,7 @@
 				<configuration>
 					<serverId>ossrh</serverId>
 					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-					<autoReleaseAfterClose>false</autoReleaseAfterClose>
+					<autoReleaseAfterClose>true</autoReleaseAfterClose>
 				</configuration>
 			</plugin>
 
