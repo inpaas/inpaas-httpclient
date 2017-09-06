@@ -20,21 +20,28 @@ public class DefaultResponseProcessor {
 	public static Object proccessResponse(HttpResponse response) throws HttpClientException {
 		
 		try {
+			if (response.getEntity() == null || response.getEntity().getContent() == null) return null;
+			
 			int statusCode = response.getStatusLine().getStatusCode();
 			String statusText = response.getStatusLine().getReasonPhrase();
 			Header contentType = response.getEntity().getContentType();
 			
-			logger.debug("proccessResponse: {} {} '{}' with {} bytes", statusCode, statusText, contentType.getValue(), response.getEntity().getContentLength());
+			logger.info("proccessResponse: {} {} '{}' with {} bytes", statusCode, statusText, contentType, response.getEntity().getContentLength());
 			
 			String contentTypeText = contentType == null ? "application/json" : contentType.getValue();
 			Object data = null;
 			if (contentTypeText.indexOf("json") > -1 || contentTypeText.indexOf("javascript") > -1) {
 				String jsondata = IOUtils.toString(response.getEntity().getContent());
 				
-				if (jsondata.startsWith("["))
+				if (jsondata == null || jsondata.length() == 0) 
+					data = null;
+				
+				else if (jsondata.startsWith("["))
 					data = new ObjectMapper().readValue(jsondata, List.class);
+				
 				else if (jsondata.startsWith("{"))
 					data = new ObjectMapper().readValue(jsondata, Map.class);
+				
 				else
 					data = new ObjectMapper().readValue(jsondata, Object.class);
 	
