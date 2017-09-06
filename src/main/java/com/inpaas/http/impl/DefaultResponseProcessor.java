@@ -54,7 +54,7 @@ public class DefaultResponseProcessor {
 	
 			}
 			
-			logger.debug("proccessResponse: {}\n{}", data.getClass().getName(), data);
+			// logger.debug("proccessResponse: {}\n{}", data != null ? data.getClass().getName() : "null", data);
 			
 			return data;
 			
