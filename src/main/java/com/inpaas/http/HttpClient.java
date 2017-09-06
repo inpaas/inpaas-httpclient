@@ -298,7 +298,7 @@ public class HttpClient {
 			String statusText = response.getStatusLine().getReasonPhrase();
 			
 			if (response.getEntity() != null) {
-				logger.info("[{}] {} {}, {} bytes of '{}'.", hci.getId(), statusCode, statusText, response.getEntity().getContentLength(), response.getEntity().getContentType().getValue());
+				logger.info("[{}] {} {}, {} bytes of '{}'.", hci.getId(), statusCode, statusText, response.getEntity().getContentLength(), response.getEntity().getContentType());
 				hci.setResponseData(statusCode, hci.getResponseProcessor().apply(response), statusCode >= 300);
 			} else {
 				logger.info("[{}] {}, 0 bytes(empty response).", hci.getId(), statusCode);
