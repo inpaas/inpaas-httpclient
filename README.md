@@ -24,7 +24,7 @@ Functionality of this package is contained in Java package `com.inpaas.http`, an
   <dependency>
     <groupId>com.inpaas</groupId>
     <artifactId>inpaas-httpclient</artifactId>
-    <version>${inpaas.osl.version}</version>
+    <version>${inpaas.httpclient.version}</version>
   </dependency>
   ...
 </dependencies>
