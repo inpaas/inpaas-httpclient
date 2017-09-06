@@ -102,7 +102,10 @@ public class SoapRequestBodyProcessor implements RequestBodyProcessor {
 			xml = xml.replace("<s12:Body>", soapHeader.toString() + "<s12:Body>");
 		}
 		
-		return !omitEmptyAttributes ? xml : wipeEmptyAttributes(xml);
+		if (omitEmptyAttributes) xml = wipeEmptyAttributes(xml);
+		logger.info("SOAPBody: \n{}", xml);
+		
+		return xml; 
 			
 	}
 	
