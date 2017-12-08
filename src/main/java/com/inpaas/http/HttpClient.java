@@ -285,10 +285,10 @@ public class HttpClient {
 			
 			if (response.getEntity() != null) {
 				hci.setResponseData(statusCode, hci.getResponseProcessor().apply(response), statusCode >= 300);
-				logger.info(hci.getMarker(), "execute - method: {}, url: {}, status: {}, bytes: {}, type: {}, elapsed: ", hci.getMethod(), hci.getUrl(), statusCode, response.getEntity().getContentLength(), response.getEntity().getContentType(), hci.getEndedAt() - hci.getStartedAt());
+				logger.info(hci.getMarker(), "execute - method: {}, url: {}, status: {}, bytes: {}, type: {}, elapsed: {}", hci.getMethod(), hci.getUrl(), statusCode, response.getEntity().getContentLength(), response.getEntity().getContentType(), hci.getEndedAt() - hci.getStartedAt());
 			} else {
 				hci.setResponseData(statusCode, null, statusCode >= 300);
-				logger.info(hci.getMarker(),"execute - method: {}, url: {}, status: {}, elapsed: ", hci.getMethod(), hci.getUrl(), statusCode, hci.getEndedAt() - hci.getStartedAt());
+				logger.info(hci.getMarker(),"execute - method: {}, url: {}, status: {}, elapsed: {}", hci.getMethod(), hci.getUrl(), statusCode, hci.getEndedAt() - hci.getStartedAt());
 			}
 			
 		} catch (HttpClientException e) {
