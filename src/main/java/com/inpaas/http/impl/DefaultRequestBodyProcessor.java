@@ -1,11 +1,12 @@
 package com.inpaas.http.impl;
 
+import com.inpaas.http.api.RequestBodyProcessor;
 import com.inpaas.http.model.HttpClientInvocation;
 import com.inpaas.http.utils.JSON;
 
-public class DefaultRequestBodyProcessor {
+public class DefaultRequestBodyProcessor implements RequestBodyProcessor {
 
-	public static final Object process(HttpClientInvocation hci) throws Exception {
+	public final Object apply(HttpClientInvocation hci) throws Exception {
 
 		// parse opt[data]
 		Object data = hci.getData();

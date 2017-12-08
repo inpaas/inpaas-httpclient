@@ -6,27 +6,20 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.inpaas.http.api.ResponseProcessor;
 import com.inpaas.http.model.exception.HttpClientException;
 
-public class DefaultResponseProcessor {
+public class DefaultResponseProcessor implements ResponseProcessor {
 
-	private static final Logger logger = LoggerFactory.getLogger(DefaultResponseProcessor.class);
-	
-	public static Object proccessResponse(HttpResponse response) throws HttpClientException {
+	public Object apply(HttpResponse response) throws HttpClientException {
 		
 		try {
 			if (response.getEntity() == null || response.getEntity().getContent() == null) return null;
 			
-			int statusCode = response.getStatusLine().getStatusCode();
-			String statusText = response.getStatusLine().getReasonPhrase();
 			Header contentType = response.getEntity().getContentType();
-			
-			logger.info("proccessResponse: {} {} '{}' with {} bytes", statusCode, statusText, contentType, response.getEntity().getContentLength());
 			
 			String contentTypeText = contentType == null ? "application/json" : contentType.getValue();
 			Object data = null;
@@ -47,14 +40,11 @@ public class DefaultResponseProcessor {
 	
 			} else if (contentTypeText.indexOf("text/xml") == 0) {
 				data = new XmlMapper().readValue(response.getEntity().getContent(), Map.class);
-				//data = SoapEnvelopeReader.read(xml).getBody();
 
 			}  else {
 				data = IOUtils.toString(response.getEntity().getContent());
 	
 			}
-			
-			// logger.debug("proccessResponse: {}\n{}", data != null ? data.getClass().getName() : "null", data);
 			
 			return data;
 			

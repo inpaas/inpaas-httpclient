@@ -48,7 +48,7 @@ import com.migcomponents.migbase64.Base64;
 public class HttpClient {
 
 	private static final String DEFAULT_ACCEPT = "application/json;q=0.9,text/javascript,text/xml,text/plain;q=0.8,*/*;q=0.1";
-	private static final String DEFAULT_USERAGENT = "inpaas-httpclient/1.0";	
+	private static final String DEFAULT_USERAGENT = "inpaas-httpclient/0.5";	
 	private static final String DEFAULT_PROTOCOL = "TLSv1";
 	
 	protected static final Logger logger = LoggerFactory.getLogger(HttpClient.class);
@@ -86,17 +86,12 @@ public class HttpClient {
 				KeyStore ks = (KeyStore) ssl.get("keystore");
 				String secret = (String) ssl.get("secret");
 				
-				logger.debug("[{}] loadKeyMaterial({})", hci.getId(), ks);
-	
 				ssb.loadKeyMaterial(ks, secret.toCharArray());
 			}
 			
 			KeyStore truststore = null;
-			if (ssl.containsKey("truststore")) { 
-				truststore = (KeyStore) ssl.get("truststore");
-				
-				logger.debug("[{}] useTrustStore({})", hci.getId(), truststore);			
-			}		
+			if (ssl.containsKey("truststore"))  
+				truststore = (KeyStore) ssl.get("truststore");			
 			
 	    	ssb.loadTrustMaterial(truststore);
 	    	
@@ -178,8 +173,6 @@ public class HttpClient {
 		
 		// handle custom headers 
 		if (headers == null) return;
-		logger.debug("[{}] proccessHeaders('{}')", hci.getId(), headers);
-		
 
 		for (String key: headers.keySet()) {
 			if (headers.get(key) == null) continue;
@@ -225,8 +218,6 @@ public class HttpClient {
 	}
 		
 	protected void proccessURI(HttpClientInvocation hci, HttpRequestBase xhr) {
-		logger.debug("[{}] {} {}", hci.getId(), hci.getMethod(), hci.getUrl());
-		
 		xhr.setURI(java.net.URI.create(hci.getUrl()));
 	}
 
@@ -266,8 +257,6 @@ public class HttpClient {
 
 		}
 
-		logger.debug("getRequest(): {}", xhr.getClass().getName());
-		
 		return xhr;
 	}
 	
@@ -278,8 +267,6 @@ public class HttpClient {
 		HttpResponse response = null;
 
 		try {
-			hci.setStarted();
-			logger.debug("[{}] started.", hci.getId());
 			if (hci.getLogging() != null) hci.getLogging().accept(hci);
 			
 			if (HttpClientServiceFactory.getHttpServiceProvider() != null) 
@@ -295,29 +282,27 @@ public class HttpClient {
 			response = httpClient.execute(xhr);
 
 			int statusCode = response.getStatusLine().getStatusCode();
-			String statusText = response.getStatusLine().getReasonPhrase();
 			
 			if (response.getEntity() != null) {
-				logger.info("[{}] {} {}, {} bytes of '{}'.", hci.getId(), statusCode, statusText, response.getEntity().getContentLength(), response.getEntity().getContentType());
 				hci.setResponseData(statusCode, hci.getResponseProcessor().apply(response), statusCode >= 300);
+				logger.info(hci.getMarker(), "execute - method: {}, url: {}, status: {}, bytes: {}, type: {}, elapsed: ", hci.getMethod(), hci.getUrl(), statusCode, response.getEntity().getContentLength(), response.getEntity().getContentType(), hci.getEndedAt() - hci.getStartedAt());
 			} else {
-				logger.info("[{}] {}, 0 bytes(empty response).", hci.getId(), statusCode);
 				hci.setResponseData(statusCode, null, statusCode >= 300);
+				logger.info(hci.getMarker(),"execute - method: {}, url: {}, status: {}, elapsed: ", hci.getMethod(), hci.getUrl(), statusCode, hci.getEndedAt() - hci.getStartedAt());
 			}
 			
 		} catch (HttpClientException e) {
-			logger.error("[{}] error: {}", hci.getId(), e.getMessage(), e);
+			logger.error(hci.getMarker(), "execute - method: {}, url: {}, error: {}", hci.getMethod(), hci.getUrl(), e.getMessage(), e);
 			throw e;
 
 		} catch (Throwable e) {
-			logger.error("[{}] error: {}", hci.getId(), e.getMessage(), e);
+			logger.error(hci.getMarker(), "execute - method: {}, url: {}, error: {}", hci.getMethod(), hci.getUrl(), e.getMessage(), e);
 			throw HttpClientException.unwrap(e);
-			// e.getCause().printStackTrace();
+			
 		} finally {
 			if (HttpClientServiceFactory.getHttpServiceProvider() != null) 
 				HttpClientServiceFactory.getHttpServiceProvider().updateServiceInvocation(hci);
 
-			logger.info("[{}] {} ms elapsed.", hci.getId(), hci.getEndedAt() - hci.getStartedAt());
 			if (hci.getLogging() != null) hci.getLogging().accept(hci);
 			
 		}

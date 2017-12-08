@@ -8,11 +8,15 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inpaas.http.api.RequestBodyProcessor;
 import com.inpaas.http.api.ResponseProcessor;
@@ -29,6 +33,9 @@ public class HttpClientInvocation {
 
 	@JsonProperty(access = Access.READ_ONLY)
 	private UUID id;
+
+	@JsonInclude(Include.NON_NULL)
+	private Marker marker;
 
 	@JsonInclude(Include.NON_NULL)
 	private String service;
@@ -54,9 +61,9 @@ public class HttpClientInvocation {
 	
 	private Consumer<HttpClientInvocation> logging;
 	
-	private RequestBodyProcessor requestBodyProcessor = DefaultRequestBodyProcessor::process;
+	private RequestBodyProcessor requestBodyProcessor;
 	
-	private ResponseProcessor responseProcessor = DefaultResponseProcessor::proccessResponse;
+	private ResponseProcessor responseProcessor;
 	
 	@JsonProperty(access = Access.READ_ONLY)
 	@JsonInclude(Include.NON_DEFAULT)
@@ -78,6 +85,11 @@ public class HttpClientInvocation {
 	@JsonInclude(Include.NON_DEFAULT)
 	private long endedAt;
 
+	public HttpClientInvocation() {
+		this.requestBodyProcessor = new DefaultRequestBodyProcessor();		
+		this.responseProcessor = new DefaultResponseProcessor();		
+	}
+	
 	public void setResponseData(int statusCode, Object response, boolean error) {
 		this.statusCode = statusCode;
 		this.response = response;
@@ -113,6 +125,10 @@ public class HttpClientInvocation {
 	
 	public UUID getId() {
 		return id;
+	}
+	
+	public Marker getMarker() {
+		return marker;
 	}
 
 	public final String getService() {
@@ -225,6 +241,22 @@ public class HttpClientInvocation {
 	public final void setSsl(Map<String, Object> ssl) {
 		this.ssl = ssl;
 	}
+
+	public final HttpClientInvocation withMarker(Marker marker) {
+		setMarker(marker);
+		
+		return this;
+	}
+	
+	@JsonSetter("marker")
+	public final void setMarker(String marker) {
+		setMarker(MarkerFactory.getMarker(marker));
+	}
+	
+	public final void setMarker(Marker marker) {
+		this.marker = marker;
+	}
+
 
 	public final HttpClientInvocation withContentType(String contentType) {
 		setContentType(contentType);

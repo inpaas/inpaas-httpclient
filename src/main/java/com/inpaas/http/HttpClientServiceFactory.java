@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
 
 import com.inpaas.http.api.HttpClientImport;
 import com.inpaas.http.api.HttpClientInvocationBuilder;
@@ -60,19 +61,31 @@ public class HttpClientServiceFactory {
 	}
 	
 	public static HttpClientFuture get(String url) throws HttpClientException {
-		return HttpClientInvocation.fromURL(url).invoke();		
+		return get(null, url);		
+	}
+	public static HttpClientFuture get(Marker marker, String url) throws HttpClientException {
+		return HttpClientInvocation.fromURL(url).withMarker(marker).invoke();		
 	}
 	
 	public static HttpClientFuture post(String url, Map<String, Object> data) throws HttpClientException {
-		return HttpClientInvocation.fromOptions("POST", url, data).invoke();				
+		return post(null, url, data);		
+	}
+	public static HttpClientFuture post(Marker marker, String url, Map<String, Object> data) throws HttpClientException {
+		return HttpClientInvocation.fromOptions("POST", url, data).withMarker(marker).invoke();				
 	}
 	
 	public static HttpClientFuture put(String url, Map<String, Object> data) throws HttpClientException {
-		return HttpClientInvocation.fromOptions("PUT", url, data).invoke();
+		return put(null, url, data);
+	}
+	public static HttpClientFuture put(Marker marker, String url, Map<String, Object> data) throws HttpClientException {
+		return HttpClientInvocation.fromOptions("PUT", url, data).withMarker(marker).invoke();
 	}
 
 	public static HttpClientFuture delete(String url) throws HttpClientException {
-		return HttpClientInvocation.fromOptions("DELETE", url, null).invoke();
+		return delete(null, url);
+	}
+	public static HttpClientFuture delete(Marker marker, String url) throws HttpClientException {
+		return HttpClientInvocation.fromOptions("DELETE", url, null).withMarker(marker).invoke();
 	}
 		
 	
