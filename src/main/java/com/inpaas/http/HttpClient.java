@@ -278,7 +278,7 @@ public class HttpClient {
 
 			httpClient = getHttpClient(hci);
 			
-			
+			hci.setStarted();
 			response = httpClient.execute(xhr);
 
 			int statusCode = response.getStatusLine().getStatusCode();

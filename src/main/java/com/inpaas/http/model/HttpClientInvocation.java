@@ -98,7 +98,6 @@ public class HttpClientInvocation {
 	}
 	
 	public void setStarted() {
-		this.id = UUID.randomUUID();
 		this.startedAt = System.currentTimeMillis();
 	}
 
