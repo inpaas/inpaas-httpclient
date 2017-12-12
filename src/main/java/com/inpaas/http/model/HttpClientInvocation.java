@@ -32,7 +32,7 @@ public class HttpClientInvocation {
 	private static final String DEFAULT_CONTENT_TYPE = "application/json; charset=utf-8";
 
 	@JsonProperty(access = Access.READ_ONLY)
-	private UUID id;
+	private final String id;
 
 	@JsonInclude(Include.NON_NULL)
 	private Marker marker;
@@ -87,7 +87,8 @@ public class HttpClientInvocation {
 
 	public HttpClientInvocation() {
 		this.requestBodyProcessor = new DefaultRequestBodyProcessor();		
-		this.responseProcessor = new DefaultResponseProcessor();		
+		this.responseProcessor = new DefaultResponseProcessor();
+		this.id = UUID.randomUUID().toString();		
 	}
 	
 	public void setResponseData(int statusCode, Object response, boolean error) {
@@ -122,7 +123,7 @@ public class HttpClientInvocation {
 		return new ObjectMapper().convertValue(opts, HttpClientInvocation.class);
 	}
 	
-	public UUID getId() {
+	public String getId() {
 		return id;
 	}
 	
