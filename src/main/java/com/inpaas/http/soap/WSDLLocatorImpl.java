@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
 
-import com.inpaas.http.HttpClient;
 import com.inpaas.http.model.HttpClientInvocation;
 import com.inpaas.http.model.HttpService;
 import com.inpaas.http.model.HttpServiceDefinition;
