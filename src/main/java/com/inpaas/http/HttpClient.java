@@ -3,8 +3,6 @@ package com.inpaas.http;
 import java.io.File;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
@@ -38,7 +36,6 @@ import com.inpaas.http.model.HttpClientInvocation;
 import com.inpaas.http.model.exception.HttpClientException;
 import com.inpaas.http.ssl.ExtendedSSLContextBuilder;
 import com.inpaas.http.ssl.SSLHostnameVerifier;
-import com.migcomponents.migbase64.Base64;
 
 /**
  * Main wrapper for ApacheHTTPClient
@@ -48,19 +45,11 @@ import com.migcomponents.migbase64.Base64;
 public class HttpClient {
 
 	private static final String DEFAULT_ACCEPT = "application/json;q=0.9,text/javascript,text/xml,text/plain;q=0.8,*/*;q=0.1";
-	private static final String DEFAULT_USERAGENT = "inpaas-httpclient/0.5";	
+	private static final String DEFAULT_USERAGENT = "inpaas-httpclient/0.6";	
 	private static final String DEFAULT_PROTOCOL = "TLSv1";
 	
 	protected static final Logger logger = LoggerFactory.getLogger(HttpClient.class);
 
-	protected static String localAddrs = null;
-	
-	protected synchronized String getLocalAddress() throws UnknownHostException {
-		if (localAddrs == null) localAddrs = Base64.encodeToString(InetAddress.getLocalHost().getAddress(), false); 
-		
-		return localAddrs;
-	}
-	
 	public HttpClient() {
 
 	}
@@ -163,14 +152,6 @@ public class HttpClient {
 		xhr.addHeader("Accept", nvl(headers, "Accept", DEFAULT_ACCEPT));
 		xhr.addHeader("User-Agent", nvl(headers, "User-Agent", DEFAULT_USERAGENT));		
 
-		// handle host header
-		try {
-			xhr.addHeader("X-Agent-Host", getLocalAddress());
-			
-		} catch (Exception e) {
-
-		}
-		
 		// handle custom headers 
 		if (headers == null) return;
 
