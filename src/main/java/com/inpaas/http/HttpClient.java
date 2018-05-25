@@ -66,7 +66,8 @@ public class HttpClient {
 	protected SSLConnectionSocketFactory getSSLSocketFactory(HttpClientInvocation hci) throws HttpClientException {
 		try {	
 			Map<String, Object> ssl = hci.getSsl();
-			String protocol = ssl.containsKey("protocol") ? String.valueOf(ssl.get("protocol")) : DEFAULT_PROTOCOL;		
+			String protocol = ssl.containsKey("protocol") ? String.valueOf(ssl.get("protocol")) : null;
+			String[] protocols = (protocol == null ? null : new String[] { protocol });
 			
 			
 			ExtendedSSLContextBuilder ssb = new ExtendedSSLContextBuilder(protocol);
@@ -84,7 +85,7 @@ public class HttpClient {
 			
 	    	ssb.loadTrustMaterial(truststore);
 	    	
-	    	return new SSLConnectionSocketFactory(ssb.build(), new String[] { protocol }, null, SSLHostnameVerifier.getInstance());
+	    	return new SSLConnectionSocketFactory(ssb.build(), protocols, null, SSLHostnameVerifier.getInstance());
 
 		} catch (NoSuchAlgorithmException e) {
 			throw HttpClientException.unwrap(e);
