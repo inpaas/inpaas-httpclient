@@ -242,6 +242,14 @@ public class HttpClientInvocation {
 		this.ssl = ssl;
 	}
 
+	public final void setResponseProcessor(ResponseProcessor responseProcessor) {
+		this.responseProcessor = responseProcessor;
+	}
+	
+	public final void setRequestBodyProcessor(RequestBodyProcessor requestBodyProcessor) {
+		this.requestBodyProcessor = requestBodyProcessor;
+	}	
+	
 	public final HttpClientInvocation withMarker(Marker marker) {
 		setMarker(marker);
 		
