@@ -24,7 +24,7 @@ Functionality of this package is contained in Java package `com.inpaas.http`, an
   <dependency>
     <groupId>com.inpaas</groupId>
     <artifactId>inpaas-httpclient</artifactId>
-    <version>${inpaas.httpclient.version}</version>
+    <version>0.6.2</version>
   </dependency>
   ...
 </dependencies>
@@ -48,3 +48,20 @@ Functionality of this package is contained in Java package `com.inpaas.http`, an
 		
 
 ```
+
+# Release Notes
+
+## Version 0.6.2 (Current)
+
+* Apache HTTPMime package is now available to convert XML and JSON data;
+* You can now override the responseProcessor for a single execution.
+
+## Version 0.6.1
+ 
+* Support for TLS 1.1 and 1.2 is now working properly.
+
+## Version 0.6.0
+
+* The header X-Agent-Host has been removed for security reasons.
+
+
