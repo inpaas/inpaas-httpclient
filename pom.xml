@@ -4,7 +4,7 @@
 
 	<groupId>com.inpaas</groupId>
 	<artifactId>inpaas-httpclient</artifactId>
-	<version>0.6.3</version>
+	<version>0.6.4</version>
 
 	<name>HTTP Client</name>
 	<description>HTTP Client for REST and SOAP Services</description>
@@ -16,8 +16,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<slf4j.version>1.7.21</slf4j.version>
-		<jackson.version>2.7.6</jackson.version>
+		<slf4j.version>1.7.25</slf4j.version>
+		<jackson.version>2.8.8</jackson.version>
 	</properties>
 
 	<licenses>
