@@ -189,6 +189,10 @@ public class HttpClientInvocation {
 		return endedAt;
 	}
 	
+	public void setTimeout(int seconds) {
+		this.timeout = seconds;
+	}
+	
 	public int getTimeout() {
 		if (timeout <= 0) timeout = 30;
 		
