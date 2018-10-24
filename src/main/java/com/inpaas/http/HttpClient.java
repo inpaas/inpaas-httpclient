@@ -10,6 +10,7 @@ import java.util.Objects;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
@@ -18,6 +19,7 @@ import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -28,6 +30,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.impl.NoConnectionReuseStrategy;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.params.CoreConnectionPNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,6 +121,12 @@ public class HttpClient {
 		try {
 			SSLConnectionSocketFactory sslsf = getSSLSocketFactory(hci);
 			
+			RequestConfig requestConfig = RequestConfig.custom()
+					   .setConnectTimeout(hci.getTimeout() * 1000)
+					   .setConnectionRequestTimeout(hci.getTimeout() * 1000)
+					   .setSocketTimeout(hci.getTimeout() * 1000)
+					   .build();
+
 			return HttpClients.custom()
 					.disableAuthCaching()
 					.disableAutomaticRetries()
@@ -125,6 +134,7 @@ public class HttpClient {
 					.disableCookieManagement()
 					.setConnectionReuseStrategy(new NoConnectionReuseStrategy())
 					.setDefaultSocketConfig(getSocketConfig())
+					.setDefaultRequestConfig(requestConfig)
 					.setSSLSocketFactory(sslsf)
 					.setConnectionManager(getConnectionManager(sslsf))
 					.build(); 
