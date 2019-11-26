@@ -51,7 +51,12 @@ Functionality of this package is contained in Java package `com.inpaas.http`, an
 
 # Release Notes
 
-## Version 0.6.2 (Current)
+## Version 0.6.6 (Current)
+
+* Added support for GZIP content
+* Fixed an issue with TLSv1.2
+
+## Version 0.6.2 
 
 * Apache HTTPMime package is now available to convert XML and JSON data;
 * You can now override the responseProcessor for a single execution.
