@@ -1,6 +1,7 @@
 package com.inpaas.http;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.security.KeyStore;
@@ -8,10 +9,18 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.http.Header;
+import org.apache.http.HeaderElement;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpException;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.EntityBuilder;
+import org.apache.http.client.entity.GzipDecompressingEntity;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
@@ -29,10 +38,13 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.impl.NoConnectionReuseStrategy;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.protocol.HttpContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.inpaas.http.impl.DefaultRequestInterceptor;
+import com.inpaas.http.impl.DefaultResponseInterceptor;
 import com.inpaas.http.model.HttpClientInvocation;
 import com.inpaas.http.model.exception.HttpClientException;
 import com.inpaas.http.ssl.ExtendedSSLContextBuilder;
@@ -135,6 +147,8 @@ public class HttpClient {
 					.setDefaultRequestConfig(requestConfig)
 					.setSSLSocketFactory(sslsf)
 					.setConnectionManager(getConnectionManager(sslsf))
+					.addInterceptorLast(DefaultRequestInterceptor.getInstance())
+					.addInterceptorLast(DefaultResponseInterceptor.getInstance())
 					.build(); 
 
 		} catch(Exception e) {
