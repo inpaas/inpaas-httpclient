@@ -1,10 +1,13 @@
 package com.inpaas.http.impl;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,45 +17,75 @@ import com.inpaas.http.model.exception.HttpClientException;
 
 public class DefaultResponseProcessor implements ResponseProcessor {
 
-	public Object apply(HttpResponse response) throws HttpClientException {
-		
-		try {
-			if (response.getEntity() == null || response.getEntity().getContent() == null) return null;
-			
-			Header contentType = response.getEntity().getContentType();
-			
-			String contentTypeText = contentType == null ? "application/json" : contentType.getValue();
-			Object data = null;
-			if (contentTypeText.indexOf("json") > -1 || contentTypeText.indexOf("javascript") > -1) {
-				String jsondata = IOUtils.toString(response.getEntity().getContent());
-				
-				if (jsondata == null || jsondata.length() == 0) 
-					data = null;
-				
-				else if (jsondata.startsWith("["))
-					data = new ObjectMapper().readValue(jsondata, List.class);
-				
-				else if (jsondata.startsWith("{"))
-					data = new ObjectMapper().readValue(jsondata, Map.class);
-				
-				else
-					data = new ObjectMapper().readValue(jsondata, Object.class);
-	
-			} else if (contentTypeText.indexOf("text/xml") == 0) {
-				data = new XmlMapper().readValue(response.getEntity().getContent(), Map.class);
+	private java.io.InputStream getContentStream(final HttpEntity responseEntity) throws IOException {
 
-			}  else {
-				data = IOUtils.toString(response.getEntity().getContent());
-	
-			}
-			
-			return data;
-			
-		} catch(Throwable e) {
-			throw HttpClientException.unwrap(e);
-			
-		}		
+		final Header contentEncoding = responseEntity.getContentEncoding();
+		final boolean gzip = contentEncoding != null && "gzip".equalsIgnoreCase(contentEncoding.getValue());
+
+		if (gzip) {
+			return new GZIPInputStream(responseEntity.getContent());
+		} else {
+			return responseEntity.getContent();
+		}
 		
+	}
+	
+	protected Object readJson(final java.io.InputStream contentStream) throws IOException {
+		
+		String jsondata = IOUtils.toString(contentStream);
+		
+		if (jsondata == null || jsondata.length() == 0) {
+			return null;
+
+		} else if (jsondata.startsWith("[")) {
+			return new ObjectMapper().readValue(jsondata, List.class);
+
+		} else if (jsondata.startsWith("{")) {
+			return new ObjectMapper().readValue(jsondata, Map.class);
+
+		} else {
+			return new ObjectMapper().readValue(jsondata, Object.class);
+		}
+		
+	}
+	
+	protected Object readXml(final java.io.InputStream contentStream) throws IOException {
+		return new XmlMapper().readValue(contentStream, Map.class);
+	}	
+	
+	protected Object readDefault(final java.io.InputStream contentStream) throws IOException {
+		return IOUtils.toString(contentStream);
+	}	
+
+	
+	public Object apply(HttpResponse response) throws HttpClientException {
+
+		final HttpEntity responseEntity = response.getEntity();
+		if (responseEntity == null) return null;
+		
+		try (final java.io.InputStream contentStream = getContentStream(responseEntity)) {
+			
+			final Header contentType = responseEntity.getContentType();
+			final String contentTypeText = contentType == null ? "application/json" : contentType.getValue();
+
+			if (contentTypeText.indexOf("json") > -1 || contentTypeText.indexOf("javascript") > -1) {
+				return readJson(contentStream);
+
+			} else if (contentTypeText.indexOf("text/xml") == 0) {
+				return readXml(contentStream);
+
+			} else {
+				return readDefault(contentStream);
+
+			}
+
+		} catch (Throwable e) {
+			throw HttpClientException.unwrap(e);
+
+		} finally {
+
+		}
+
 	}
 
 }
