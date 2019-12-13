@@ -8,6 +8,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
@@ -48,8 +50,7 @@ import com.inpaas.http.ssl.SSLHostnameVerifier;
 public class HttpClient {
 
 	private static final String DEFAULT_ACCEPT = "application/json;q=0.9,text/javascript,text/xml,text/plain;q=0.8,*/*;q=0.1";
-	private static final String DEFAULT_USERAGENT = "inpaas-httpclient/0.6";	
-	private static final String DEFAULT_PROTOCOL = "TLSv1";
+	private static final String DEFAULT_USERAGENT = "inpaas-httpclient/0.67";	
 	
 	protected static final Logger logger = LoggerFactory.getLogger(HttpClient.class);
 
@@ -275,15 +276,26 @@ public class HttpClient {
 			hci.setStarted();
 			response = httpClient.execute(xhr);
 
-			int statusCode = response.getStatusLine().getStatusCode();
+			final int statusCode = response.getStatusLine().getStatusCode();
+			final long elapsed = hci.getEndedAt() - hci.getStartedAt();
 			
-			if (response.getEntity() != null) {
-				hci.setResponseData(statusCode, hci.getResponseProcessor().apply(response), statusCode >= 300);
-				logger.info(hci.getMarker(), "execute - method: {}, url: {}, status: {}, bytes: {}, type: {}, elapsed: {}", hci.getMethod(), hci.getUrl(), statusCode, response.getEntity().getContentLength(), response.getEntity().getContentType(), hci.getEndedAt() - hci.getStartedAt());
+			final HttpEntity responseEntity = response.getEntity();
+			final long contentLength = responseEntity == null ? 0 : responseEntity.getContentLength();
+			final Header contentType = responseEntity == null ? null : responseEntity.getContentType();
+			
+			if (elapsed > 1000) {
+				logger.warn(hci.getMarker(), "execute(slow-http) - method: {}, url: {}, status: {}, bytes: {}, type: {}, elapsed: {}", hci.getMethod(), hci.getUrl(), statusCode, contentLength, contentType, elapsed);				
 			} else {
-				hci.setResponseData(statusCode, null, statusCode >= 300);
-				logger.info(hci.getMarker(),"execute - method: {}, url: {}, status: {}, elapsed: {}", hci.getMethod(), hci.getUrl(), statusCode, hci.getEndedAt() - hci.getStartedAt());
+				logger.info(hci.getMarker(), "execute - method: {}, url: {}, status: {}, bytes: {}, type: {}, elapsed: {}", hci.getMethod(), hci.getUrl(), statusCode, contentLength, contentType, elapsed);				
 			}
+			
+			final Object responseData = responseEntity == null ? null : hci.getResponseProcessor().apply(response);
+			if (statusCode >= 300) {
+				logger.warn(hci.getMarker(), "execute(error) - method: {}, url: {}, status: {}, bytes: {}, type: {}, elapsed: {}, error: {}", hci.getMethod(), hci.getUrl(), statusCode, contentLength, contentType, elapsed, responseData);				
+			}
+			
+			hci.setResponseData(statusCode, responseData, statusCode >= 300);
+			
 			
 		} catch (HttpClientException e) {
 			logger.error(hci.getMarker(), "execute - method: {}, url: {}, error: {}", hci.getMethod(), hci.getUrl(), e.getMessage(), e);
