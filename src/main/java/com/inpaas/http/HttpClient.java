@@ -289,7 +289,7 @@ public class HttpClient {
 				logger.info(hci.getMarker(), "execute - method: {}, url: {}, status: {}, bytes: {}, type: {}, elapsed: {}", hci.getMethod(), hci.getUrl(), statusCode, contentLength, contentType, elapsed);				
 			}
 			
-			final Object responseData = responseEntity == null ? null : hci.getResponseProcessor().apply(response);
+			final Object responseData = hci.getResponseProcessor().apply(response);
 			if (statusCode >= 300) {
 				logger.warn(hci.getMarker(), "execute(error) - method: {}, url: {}, status: {}, bytes: {}, type: {}, elapsed: {}, error: {}", hci.getMethod(), hci.getUrl(), statusCode, contentLength, contentType, elapsed, responseData);				
 			}

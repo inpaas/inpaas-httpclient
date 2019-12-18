@@ -22,6 +22,7 @@ import com.inpaas.http.api.RequestBodyProcessor;
 import com.inpaas.http.api.ResponseProcessor;
 import com.inpaas.http.impl.DefaultRequestBodyProcessor;
 import com.inpaas.http.impl.DefaultResponseProcessor;
+import com.inpaas.http.impl.RawResponseProcessor;
 import com.inpaas.http.model.exception.HttpClientException;
 import com.inpaas.http.thread.HttpClientInvoker;
 import com.inpaas.http.utils.JSON;
@@ -287,6 +288,14 @@ public class HttpClientInvocation {
 
 		return this;
 	}
+	
+	
+	public final HttpClientInvocation withRawResponseProcessor() {
+		this.responseProcessor = RawResponseProcessor.getInstance();
+		
+		return this;
+	}	
+	
 	
 	public final HttpClientInvocation withResponseProcessor(ResponseProcessor responseProcessor) {
 		this.responseProcessor = responseProcessor;
