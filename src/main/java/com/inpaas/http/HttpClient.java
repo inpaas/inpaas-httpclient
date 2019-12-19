@@ -277,21 +277,20 @@ public class HttpClient {
 			response = httpClient.execute(xhr);
 
 			final int statusCode = response.getStatusLine().getStatusCode();
-			final long elapsed = hci.getEndedAt() - hci.getStartedAt();
+			final long elapsed = System.currentTimeMillis() - hci.getStartedAt();
 			
 			final HttpEntity responseEntity = response.getEntity();
-			final long contentLength = responseEntity == null ? 0 : responseEntity.getContentLength();
-			final Header contentType = responseEntity == null ? null : responseEntity.getContentType();
+			final String contentType = responseEntity == null ? null : (responseEntity.getContentType() == null ? null : responseEntity.getContentType().getValue());
 			
 			if (elapsed > 1000) {
-				logger.warn(hci.getMarker(), "execute(slow-http) - method: {}, url: {}, status: {}, bytes: {}, type: {}, elapsed: {}", hci.getMethod(), hci.getUrl(), statusCode, contentLength, contentType, elapsed);				
+				logger.warn(hci.getMarker(), "execute(slow-http) - method: {}, url: {}, status: {}, type: {}, elapsed: {}", hci.getMethod(), hci.getUrl(), statusCode, contentType, elapsed);				
 			} else {
-				logger.info(hci.getMarker(), "execute - method: {}, url: {}, status: {}, bytes: {}, type: {}, elapsed: {}", hci.getMethod(), hci.getUrl(), statusCode, contentLength, contentType, elapsed);				
+				logger.info(hci.getMarker(), "execute - method: {}, url: {}, status: {}, bytes: {}, type: {}, elapsed: {}", hci.getMethod(), hci.getUrl(), statusCode, contentType, elapsed);				
 			}
 			
 			final Object responseData = hci.getResponseProcessor().apply(response);
 			if (statusCode >= 300) {
-				logger.warn(hci.getMarker(), "execute(error) - method: {}, url: {}, status: {}, bytes: {}, type: {}, elapsed: {}, error: {}", hci.getMethod(), hci.getUrl(), statusCode, contentLength, contentType, elapsed, responseData);				
+				logger.warn(hci.getMarker(), "execute(error) - method: {}, url: {}, status: {}, bytes: {}, type: {}, elapsed: {}, error: {}", hci.getMethod(), hci.getUrl(), statusCode, contentType, elapsed, responseData);				
 			}
 			
 			hci.setResponseData(statusCode, responseData, statusCode >= 300);
