@@ -50,7 +50,7 @@ import com.inpaas.http.ssl.SSLHostnameVerifier;
 public class HttpClient {
 
 	private static final String DEFAULT_ACCEPT = "application/json;q=0.9,text/javascript,text/xml,text/plain;q=0.8,*/*;q=0.1";
-	private static final String DEFAULT_USERAGENT = "inpaas-httpclient/0.67";	
+	private static final String DEFAULT_USERAGENT = "inpaas-httpclient/0.6.10";	
 	
 	protected static final Logger logger = LoggerFactory.getLogger(HttpClient.class);
 
